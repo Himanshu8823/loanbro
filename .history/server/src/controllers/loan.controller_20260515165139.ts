@@ -1,0 +1,112 @@
+import { Request, Response } from "express";
+import asyncHandler from "../utils/async-handler";
+import { sendSuccess, sendError } from "../utils/api-response";
+import { MESSAGES } from "../constants/messages";
+import { uploadSalarySlip } from "../services/upload.service";
+import { env } from "../config/env";
+import {
+  startLoanApplication,
+  attachSalarySlip,
+  applyLoan,
+  sanctionLoan,
+  disburseLoan,
+  getBorrowerLoans,
+  getAllLoans,
+  getLoanById,
+  getSalesLeads,
+} from "../services/loan.service";
+
+export const startApplication = asyncHandler(
+  async (req: Request, res: Response) => {
+    const loan = await startLoanApplication(req.user!.id, req.body);
+    sendSuccess(res, 201, MESSAGES.LOAN.DRAFT_CREATED, { loan });
+  }
+);
+
+export const uploadSlip = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.file) {
+      sendError(res, 400, MESSAGES.UPLOAD.REQUIRED);
+      return;
+    }
+
+    const salarySlip = await uploadSalarySlip(
+      req.file,
+      env.cloudinary.folder
+    );
+
+    const loan = await attachSalarySlip(
+      req.params.id,
+      req.user!.id,
+      salarySlip
+    );
+
+    sendSuccess(res, 200, MESSAGES.UPLOAD.SUCCESS, { loan });
+  }
+);
+
+export const submitApplication = asyncHandler(
+  async (req: Request, res: Response) => {
+    const loan = await applyLoan(req.params.id, req.user!.id, req.body);
+    sendSuccess(res, 200, MESSAGES.LOAN.APPLIED, { loan });
+  }
+);
+
+export const sanctionApplication = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { action, rejectionReason } = req.body;
+
+    if (!["approve", "reject"].includes(action)) {
+      sendError(res, 400, "Action must be approve or reject");
+      return;
+    }
+
+    const loan = await sanctionLoan(
+      req.params.id,
+      req.user!.id,
+      action,
+      rejectionReason
+    );
+
+    const message =
+      action === "approve" ? MESSAGES.LOAN.SANCTIONED : MESSAGES.LOAN.REJECTED;
+
+    sendSuccess(res, 200, message, { loan });
+  }
+);
+
+export const disburseApplication = asyncHandler(
+  async (req: Request, res: Response) => {
+    const loan = await disburseLoan(req.params.id, req.user!.id);
+    sendSuccess(res, 200, MESSAGES.LOAN.DISBURSED, { loan });
+  }
+);
+
+export const getMyLoans = asyncHandler(
+  async (req: Request, res: Response) => {
+    const loans = await getBorrowerLoans(req.user!.id);
+    sendSuccess(res, 200, MESSAGES.LOAN.FETCH_SUCCESS, { loans });
+  }
+);
+
+export const getLoans = asyncHandler(async (req: Request, res: Response) => {
+  const { status, page, limit } = req.query;
+
+  const result = await getAllLoans({
+    status: status as string | undefined,
+    page: page ? parseInt(page as string) : undefined,
+    limit: limit ? parseInt(limit as string) : undefined,
+  });
+
+  sendSuccess(res, 200, MESSAGES.LOAN.FETCH_SUCCESS, result);
+});
+
+export const getLoan = asyncHandler(async (req: Request, res: Response) => {
+  const loan = await getLoanById(req.params.id);
+  sendSuccess(res, 200, MESSAGES.LOAN.FETCH_SUCCESS, { loan });
+});
+
+export const getLeads = asyncHandler(async (req: Request, res: Response) => {
+  const leads = await getSalesLeads();
+  sendSuccess(res, 200, MESSAGES.GENERAL.FETCH_SUCCESS, { leads });
+});

@@ -1,0 +1,40 @@
+import { connectDB } from "./config/db";
+import { env } from "./config/env";
+import app from "./app";
+
+const startServer = async (): Promise<void> => {
+  try {
+    await connectDB();
+
+    const server = app.listen(env.port, () => {
+      console.log(`🚀 Server running on port ${env.port} [${env.nodeEnv}]`);
+      console.log(`📡 Health: http://localhost:${env.port}/health`);
+    });
+
+    const shutdown = async (signal: string): Promise<void> => {
+      console.log(`\n⚠️  ${signal} received. Shutting down gracefully...`);
+      server.close(() => {
+        console.log("🔌 HTTP server closed");
+        process.exit(0);
+      });
+    };
+
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
+
+    process.on("unhandledRejection", (reason: unknown) => {
+      console.error("❌ Unhandled Rejection:", reason);
+      server.close(() => process.exit(1));
+    });
+
+    process.on("uncaughtException", (err: Error) => {
+      console.error("❌ Uncaught Exception:", err.message);
+      process.exit(1);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
