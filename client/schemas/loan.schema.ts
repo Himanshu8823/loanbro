@@ -13,9 +13,10 @@ export const personalDetailsSchema = z.object({
     .min(1, "Date of birth is required")
     .refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
 
-  monthlySalary: z
-    .number({ message: "Monthly salary is required" })
-    .positive("Monthly salary must be positive"),
+ monthlySalary: z
+  .number()
+  .min(1, "Monthly salary is required")
+  .positive("Monthly salary must be positive"),
 
   employmentType: z.enum(
     [
