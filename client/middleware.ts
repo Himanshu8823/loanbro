@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Edge Runtime compatible - constants inlined to avoid module import issues
 const ROLES = {
   BORROWER: "borrower",
   SALES: "sales",
@@ -20,49 +19,81 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   [ROLES.SANCTION]: ["/dashboard/sanction"],
   [ROLES.DISBURSEMENT]: ["/dashboard/disbursement"],
   [ROLES.COLLECTION]: ["/dashboard/collection"],
-  [ROLES.BORROWER]: ["/", "/home", "/application", "/loan", "/profile"],
+  [ROLES.BORROWER]: [
+    "/",
+    "/home",
+    "/application",
+    "/loan",
+    "/profile",
+  ],
 };
 
-const decodeJwtPayload = (token: string): { role?: string } | null => {
+const decodeJwtPayload = (
+  token: string
+): { role?: string } | null => {
   try {
-    const base64Payload = token.split(".")[1];
+    const payload = token.split(".")[1];
 
-    const base64 = base64Payload
+    if (!payload) return null;
+
+    const base64 = payload
       .replace(/-/g, "+")
       .replace(/_/g, "/");
 
     const decoded = atob(base64);
 
     return JSON.parse(decoded);
-  } catch {
+  } catch (error) {
     return null;
   }
 };
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const pathname = req.nextUrl.pathname;
 
-  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname.startsWith(route)
+  // Skip static files
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
+  const isPublicRoute = PUBLIC_ROUTES.some(
+    (route) =>
+      pathname === route ||
+      pathname.startsWith(`${route}/`)
   );
 
   const token = req.cookies.get(COOKIE_NAME)?.value;
 
+  // No token
   if (!token) {
-    if (isPublicRoute) return NextResponse.next();
-    return NextResponse.redirect(new URL("/login", req.url));
+    if (isPublicRoute) {
+      return NextResponse.next();
+    }
+
+    return NextResponse.redirect(
+      new URL("/login", req.url)
+    );
   }
 
+  // Decode token
   const payload = decodeJwtPayload(token);
 
   if (!payload?.role) {
-    const response = NextResponse.redirect(new URL("/login", req.url));
+    const response = NextResponse.redirect(
+      new URL("/login", req.url)
+    );
+
     response.cookies.delete(COOKIE_NAME);
+
     return response;
   }
 
   const role = payload.role;
 
+  // Already logged in user visiting login/signup
   if (isPublicRoute) {
     const redirectMap: Record<string, string> = {
       [ROLES.BORROWER]: "/home",
@@ -70,31 +101,35 @@ export function middleware(req: NextRequest) {
       [ROLES.SANCTION]: "/dashboard/sanction",
       [ROLES.DISBURSEMENT]: "/dashboard/disbursement",
       [ROLES.COLLECTION]: "/dashboard/collection",
-      [ROLES.ADMIN]: "/dashboard/admin",
+      [ROLES.ADMIN]: "/dashboard",
     };
+
     return NextResponse.redirect(
-      new URL(redirectMap[role] ?? "/login", req.url)
+      new URL(redirectMap[role] || "/login", req.url)
     );
   }
 
-  const allowedRoutes = ROLE_ALLOWED_ROUTES[role] ?? [];
+  // RBAC
+  const allowedRoutes =
+    ROLE_ALLOWED_ROUTES[role] || [];
+
   const isAllowed = allowedRoutes.some((route) => {
-    // "/" should match only "/" exactly, not everything starting with "/"
     if (route === "/") {
       return pathname === "/";
     }
+
     return pathname.startsWith(route);
   });
 
   if (!isAllowed) {
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+    return NextResponse.redirect(
+      new URL("/unauthorized", req.url)
+    );
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/:path*"],
 };
