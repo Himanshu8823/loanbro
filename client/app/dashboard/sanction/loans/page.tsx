@@ -9,22 +9,30 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { LOAN_STATUS } from "@/lib/constants";
 
 export default function SanctionLoansPage() {
-  const { data, isLoading } = useAllLoans(LOAN_STATUS.APPLIED);
+  const { data, isLoading } = useAllLoans();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   const filteredLoans = useMemo(() => {
-    const loans = data?.loans ?? [];
-    if (!debouncedSearch.trim()) return loans;
-    const q = debouncedSearch.toLowerCase();
-    return loans.filter(
-      (l) =>
-        l.borrower.fullName.toLowerCase().includes(q) ||
-        l.borrower.email.toLowerCase().includes(q) ||
-        l.borrower.userCode.toLowerCase().includes(q) ||
-        l.borrower.phoneNumber?.includes(q)
-    );
-  }, [data, debouncedSearch]);
+  const loans = (data?.loans ?? []).filter(
+    (loan) =>
+      loan.status === LOAN_STATUS.APPLIED ||
+      loan.status === LOAN_STATUS.SANCTIONED ||
+      loan.status === LOAN_STATUS.REJECTED
+  );
+
+  if (!debouncedSearch.trim()) return loans;
+
+  const q = debouncedSearch.toLowerCase();
+
+  return loans.filter(
+    (l) =>
+      l.borrower.fullName.toLowerCase().includes(q) ||
+      l.borrower.email.toLowerCase().includes(q) ||
+      l.borrower.userCode.toLowerCase().includes(q) ||
+      l.borrower.phoneNumber?.includes(q)
+  );
+}, [data, debouncedSearch]);
 
   if (isLoading) return <PageLoader />;
 

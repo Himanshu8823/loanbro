@@ -25,7 +25,7 @@ export const EMPLOYMENT_TYPES = {
 } as const;
 
 // Borrower protected routes
-export const BORROWER_ROUTES = ["/application", "/loan", "/profile"];
+export const BORROWER_ROUTES = ["/", "/home", "/application", "/loan", "/profile"];
 
 // Dashboard protected routes
 export const DASHBOARD_ROUTES = [
@@ -38,7 +38,7 @@ export const DASHBOARD_ROUTES = [
 
 // Role to dashboard route map — used after login redirect
 export const ROLE_REDIRECT: Record<string, string> = {
-  [ROLES.BORROWER]: "/application",
+  [ROLES.BORROWER]: "/home",
   [ROLES.SALES]: "/dashboard/sales",
   [ROLES.SANCTION]: "/dashboard/sanction",
   [ROLES.DISBURSEMENT]: "/dashboard/disbursement",

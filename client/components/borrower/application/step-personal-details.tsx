@@ -131,7 +131,7 @@ export function StepPersonalDetails({ onSuccess }: StepPersonalDetailsProps) {
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                   </FormControl>

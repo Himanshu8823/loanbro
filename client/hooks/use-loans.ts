@@ -98,10 +98,13 @@ export const useSanctionLoan = () => {
   return useMutation({
     mutationFn: ({ loanId, data }: { loanId: string; data: SanctionPayload }) =>
       loanService.sanctionLoan(loanId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.allLoans() });
-      toast.success("Loan status updated successfully");
-    },
+ onSuccess: () => {
+  queryClient.invalidateQueries({
+    queryKey: ["loans", "all"],
+  });
+
+  toast.success("Loan status updated successfully");
+},
     onError: (error: any) => {
       toast.error(error?.response?.data?.message ?? "Action failed");
     },
@@ -114,9 +117,12 @@ export const useDisburseLoan = () => {
   return useMutation({
     mutationFn: (loanId: string) => loanService.disburseLoan(loanId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LOAN_QUERY_KEYS.allLoans() });
-      toast.success("Loan disbursed successfully");
-    },
+  queryClient.invalidateQueries({
+    queryKey: ["loans", "all"],
+  });
+
+  toast.success("Loan disbursed successfully");
+},
     onError: (error: any) => {
       toast.error(error?.response?.data?.message ?? "Disburse failed");
     },

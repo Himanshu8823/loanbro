@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ROLES } from "@/lib/constants";
 import { COOKIE_NAME } from "@/lib/constants";
 
-const PUBLIC_ROUTES = ["/login", "/signup"];
+const PUBLIC_ROUTES = ["/login", "/signup", "/unauthorized"];
 
 const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   [ROLES.ADMIN]: ["/dashboard"],
@@ -10,7 +10,7 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
   [ROLES.SANCTION]: ["/dashboard/sanction"],
   [ROLES.DISBURSEMENT]: ["/dashboard/disbursement"],
   [ROLES.COLLECTION]: ["/dashboard/collection"],
-  [ROLES.BORROWER]: ["/application", "/loan", "/profile"],
+  [ROLES.BORROWER]: ["/", "/home", "/application", "/loan", "/profile"],
 };
 
 const decodeJwtPayload = (token: string): { role?: string } | null => {
@@ -49,7 +49,7 @@ export function middleware(req: NextRequest) {
 
   if (isPublicRoute) {
     const redirectMap: Record<string, string> = {
-      [ROLES.BORROWER]: "/application",
+      [ROLES.BORROWER]: "/home",
       [ROLES.SALES]: "/dashboard/sales",
       [ROLES.SANCTION]: "/dashboard/sanction",
       [ROLES.DISBURSEMENT]: "/dashboard/disbursement",
@@ -62,9 +62,13 @@ export function middleware(req: NextRequest) {
   }
 
   const allowedRoutes = ROLE_ALLOWED_ROUTES[role] ?? [];
-  const isAllowed = allowedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isAllowed = allowedRoutes.some((route) => {
+    // "/" should match only "/" exactly, not everything starting with "/"
+    if (route === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(route);
+  });
 
   if (!isAllowed) {
     return NextResponse.redirect(new URL("/unauthorized", req.url));

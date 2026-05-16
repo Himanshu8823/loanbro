@@ -5,6 +5,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { Loan } from "@/types/loan.types";
 import { useSanctionLoan } from "@/hooks/use-loans";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { LOAN_STATUS } from "@/lib/constants";
 import { StatusBadge } from "@/components/shared/badges/status-badge";
 import { ConfirmModal } from "@/components/shared/modals/confirm-modal";
 import { RejectModal } from "./reject-modal";
@@ -95,28 +96,35 @@ export function SanctionTable({ loans }: SanctionTableProps) {
                 <TableCell>
                   <StatusBadge status={loan.status} />
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
-                      onClick={() => setApprovingId(loan._id)}
-                    >
-                      <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
-                      onClick={() => setRejectingId(loan._id)}
-                    >
-                      <XCircle className="h-3.5 w-3.5 mr-1" />
-                      Reject
-                    </Button>
-                  </div>
-                </TableCell>
+               <TableCell>
+  {loan.status === LOAN_STATUS.APPLIED ? (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="outline"
+        className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
+        onClick={() => setApprovingId(loan._id)}
+      >
+        <CheckCircle className="h-3.5 w-3.5 mr-1" />
+        Approve
+      </Button>
+
+      <Button
+        size="sm"
+        variant="outline"
+        className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600"
+        onClick={() => setRejectingId(loan._id)}
+      >
+        <XCircle className="h-3.5 w-3.5 mr-1" />
+        Reject
+      </Button>
+    </div>
+  ) : (
+    <span className="text-xs text-slate-400 font-medium">
+      Action Completed
+    </span>
+  )}
+</TableCell>
               </TableRow>
             ))}
           </TableBody>
