@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ROLES } from "@/lib/constants";
-import { COOKIE_NAME } from "@/lib/constants";
-
-const PUBLIC_ROUTES = ["/login", "/signup", "/unauthorized"];
-
-const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
-  [ROLES.ADMIN]: ["/dashboard"],
-  [ROLES.SALES]: ["/dashboard/sales"],
-  [ROLES.SANCTION]: ["/dashboard/sanction"],
-  [ROLES.DISBURSEMENT]: ["/dashboard/disbursement"],
-  [ROLES.COLLECTION]: ["/dashboard/collection"],
-  [ROLES.BORROWER]: ["/", "/home", "/application", "/loan", "/profile"],
-};
+import { ROLES, COOKIE_NAME, PUBLIC_ROUTES, ROLE_ALLOWED_ROUTES } from "@/lib/middleware-constants";
 
 const decodeJwtPayload = (token: string): { role?: string } | null => {
   try {
