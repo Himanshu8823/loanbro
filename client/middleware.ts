@@ -1,5 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ROLES, COOKIE_NAME, PUBLIC_ROUTES, ROLE_ALLOWED_ROUTES } from "@/lib/middleware-constants";
+
+// Edge Runtime compatible - constants inlined to avoid module import issues
+const ROLES = {
+  BORROWER: "borrower",
+  SALES: "sales",
+  SANCTION: "sanction",
+  DISBURSEMENT: "disbursement",
+  COLLECTION: "collection",
+  ADMIN: "admin",
+} as const;
+
+const COOKIE_NAME = "lms_token";
+
+const PUBLIC_ROUTES = ["/login", "/signup", "/unauthorized"];
+
+const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
+  [ROLES.ADMIN]: ["/dashboard"],
+  [ROLES.SALES]: ["/dashboard/sales"],
+  [ROLES.SANCTION]: ["/dashboard/sanction"],
+  [ROLES.DISBURSEMENT]: ["/dashboard/disbursement"],
+  [ROLES.COLLECTION]: ["/dashboard/collection"],
+  [ROLES.BORROWER]: ["/", "/home", "/application", "/loan", "/profile"],
+};
 
 const decodeJwtPayload = (token: string): { role?: string } | null => {
   try {
