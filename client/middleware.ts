@@ -26,7 +26,13 @@ const ROLE_ALLOWED_ROUTES: Record<string, string[]> = {
 const decodeJwtPayload = (token: string): { role?: string } | null => {
   try {
     const base64Payload = token.split(".")[1];
-    const decoded = Buffer.from(base64Payload, "base64").toString("utf-8");
+
+    const base64 = base64Payload
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+
+    const decoded = atob(base64);
+
     return JSON.parse(decoded);
   } catch {
     return null;
