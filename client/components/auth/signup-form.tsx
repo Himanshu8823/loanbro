@@ -57,7 +57,7 @@ export function SignupForm() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="fullName"
               render={({ field }) => (
                 <FormItem>
@@ -75,7 +75,7 @@ export function SignupForm() {
             />
 
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -94,7 +94,7 @@ export function SignupForm() {
             />
 
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
@@ -113,7 +113,7 @@ export function SignupForm() {
             />
 
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="password"
               render={({ field }) => (
                 <FormItem>
