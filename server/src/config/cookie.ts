@@ -3,8 +3,8 @@ import { env } from "./env";
 
 const BASE_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,    
-  secure: env.isProd,
-  sameSite: "lax",
+  secure: env.isProd,  
+  sameSite: env.isProd ? "none" : "strict",
   path: "/",
 };
 

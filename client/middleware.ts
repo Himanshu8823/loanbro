@@ -28,11 +28,11 @@ const ROLE_REDIRECT: Record<string, string> = {
   [ROLES.SANCTION]: "/dashboard/sanction",
   [ROLES.DISBURSEMENT]: "/dashboard/disbursement",
   [ROLES.COLLECTION]: "/dashboard/collection",
-  [ROLES.ADMIN]: "/dashboard",
+  [ROLES.ADMIN]: "/dashboard/admin",
 };
 
 /**
- * Decodes JWT payload using atob — works on Edge Runtime (no Buffer).
+ * Decodes JWT payload using atob — works on Edge Runtime without Buffer.
  */
 const decodeJwtPayload = (token: string): { role?: string } | null => {
   try {
