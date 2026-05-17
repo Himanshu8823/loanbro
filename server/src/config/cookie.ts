@@ -4,7 +4,7 @@ import { env } from "./env";
 const BASE_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,    
   secure: env.isProd,
-  sameSite: "strict",
+  sameSite: "lax",
   path: "/",
 };
 
